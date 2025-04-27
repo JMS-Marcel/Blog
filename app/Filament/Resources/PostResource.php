@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\PostResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\PostResource\RelationManagers;
+use Filament\Tables\Columns\Column;
 
 class PostResource extends Resource
 {
@@ -25,27 +26,37 @@ class PostResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+        
+        ->schema([
+        Forms\Components\Section::make()
             ->schema([
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->reactive()
-                    ->afterStateUpdated(function($set, $state){
+                    ->afterStateUpdated(function ($set, $state) {
                         $set('slug', Str::slug($state));
                     }),
                 Forms\Components\TextInput::make('slug')
                     ->required(),
-                Forms\Components\TextInput::make('thumbnail'),
-                Forms\Components\Textarea::make('body')
+                Forms\Components\RichEditor::make('body')
                     ->required()
                     ->columnSpanFull(),
                 Forms\Components\Toggle::make('active')
                     ->required(),
                 Forms\Components\DateTimePicker::make('published_at')
                     ->required(),
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
-            ]);
+            ])->columnSpan(8),
+            
+        Forms\Components\Section::make()
+            ->schema([
+                Forms\Components\FileUpload::make('thumbnail'),
+                Forms\Components\Select::make('categories_id')
+                ->multiple()
+                ->relationship('categories', 'title')
+                ->required(),
+            ])->columnSpan(4)
+
+            ])->columns(12);
     }
 
     public static function table(Table $table): Table
